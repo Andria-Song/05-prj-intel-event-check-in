@@ -348,6 +348,19 @@ select {
   color: #475569;
 }
 
+.team-list {
+  list-style: none;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.team-list li {
+  font-size: 14px;
+  font-weight: bold;
+  color: #334155;
+  padding: 3px 0;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .hero {
