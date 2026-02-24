@@ -2,10 +2,113 @@
 const form = document.getElementById("checkInForm");
 const nameInput = document.getElementById("attendeeName");
 const teamSelect = document.getElementById("teamSelect");
+const progressBar = document.getElementById("progressBar");
+const attendanceCount = document.getElementById("attendeeCount");
 
 //Track Attendance
 let count = 0;
 const maxCount = 50;
+const storageKey = "checkInCounts";
+
+function loadCounts() {
+  const savedCounts = localStorage.getItem(storageKey);
+
+  if (!savedCounts) {
+    return;
+  }
+
+  const parsedCounts = JSON.parse(savedCounts);
+  count = parsedCounts.totalCount || 0;
+
+  attendanceCount.textContent = count;
+  progressBar.style.width = `${Math.round((count / maxCount) * 100)}%`;
+
+  const waterCount = document.getElementById("waterCount");
+  const zeroCount = document.getElementById("zeroCount");
+  const powerCount = document.getElementById("powerCount");
+  const waterList = document.getElementById("waterList");
+  const zeroList = document.getElementById("zeroList");
+  const powerList = document.getElementById("powerList");
+
+  const savedNames = parsedCounts.teamNames || {
+    water: [],
+    zero: [],
+    power: [],
+  };
+
+  waterCount.textContent = parsedCounts.teamCounts.water || 0;
+  zeroCount.textContent = parsedCounts.teamCounts.zero || 0;
+  powerCount.textContent = parsedCounts.teamCounts.power || 0;
+
+  waterList.innerHTML = "";
+  zeroList.innerHTML = "";
+  powerList.innerHTML = "";
+
+  let i = 0;
+  for (i = 0; i < savedNames.water.length; i++) {
+    const attendeeItem = document.createElement("li");
+    attendeeItem.textContent = savedNames.water[i];
+    waterList.appendChild(attendeeItem);
+  }
+
+  for (i = 0; i < savedNames.zero.length; i++) {
+    const attendeeItem = document.createElement("li");
+    attendeeItem.textContent = savedNames.zero[i];
+    zeroList.appendChild(attendeeItem);
+  }
+
+  for (i = 0; i < savedNames.power.length; i++) {
+    const attendeeItem = document.createElement("li");
+    attendeeItem.textContent = savedNames.power[i];
+    powerList.appendChild(attendeeItem);
+  }
+}
+
+function saveCounts() {
+  const waterCount = parseInt(
+    document.getElementById("waterCount").textContent,
+    10,
+  );
+  const zeroCount = parseInt(
+    document.getElementById("zeroCount").textContent,
+    10,
+  );
+  const powerCount = parseInt(
+    document.getElementById("powerCount").textContent,
+    10,
+  );
+
+  const countsToSave = {
+    totalCount: count,
+    teamCounts: {
+      water: waterCount,
+      zero: zeroCount,
+      power: powerCount,
+    },
+    teamNames: {
+      water: getNamesFromList("waterList"),
+      zero: getNamesFromList("zeroList"),
+      power: getNamesFromList("powerList"),
+    },
+  };
+
+  localStorage.setItem(storageKey, JSON.stringify(countsToSave));
+}
+
+function getNamesFromList(listId) {
+  const list = document.getElementById(listId);
+  const names = [];
+
+  let i = 0;
+  for (i = 0; i < list.children.length; i++) {
+    names.push(list.children[i].textContent);
+  }
+
+  return names;
+}
+
+//Load saved counts when the page opens
+loadCounts();
 
 //Handle form submission
 form.addEventListener("submit", function (event) {
@@ -46,16 +149,13 @@ form.addEventListener("submit", function (event) {
   welcomeMessage.classList.add("success-message");
 
   //Tracking Attendace
-  const attendanceCount = document.getElementById("attendeeCount");
   attendanceCount.textContent = count;
+
+  saveCounts();
 
   if (parseInt(teamCounter.textContent, 10) >= 17) {
     welcomeMessage.textContent = `CONGRATULATIONS! ${teamName} has the most attendees!`;
   }
-
-
-  
-
 
   form.reset();
 });
